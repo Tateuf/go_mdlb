@@ -15,7 +15,7 @@ func png_generator(resolution_x, resolution_y int, start_position_x, start_posit
 	for y := 0; y < resolution_y; y++ {
 		for x := 0; x < resolution_x; x++ {
 			new_x := (float64(x)/float64(resolution_x))*quantize_length + start_position_x
-			new_y := (float64(y)/float64(resolution_y))*quantize_length + start_position_y
+			new_y := start_position_y - (float64(y)/float64(resolution_y))*quantize_length
 			iteration := mandelbrot(max_iteration, new_x, new_y)
 			pixel_color := colorize(iteration, max_iteration, colormap)
 			img.Set(x, y, color.NRGBA{
