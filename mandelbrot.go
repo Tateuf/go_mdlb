@@ -7,14 +7,15 @@ import (
 	"log"
 	"math"
 	"os"
+	"sync"
 )
 
-func png_generator(resolution_x, resolution_y int, start_position_x, start_position_y, quantize_length, max_iteration float64, colormap [][3]int) {
+func png_generator(resolution_x, resolution_y int, start_position_x, start_position_y, quantize_length, max_iteration float64, colormap [][3]int, wg *sync.WaitGroup) {
 	img := image.NewNRGBA(image.Rect(0, 0, resolution_x, resolution_y))
 	for y := 0; y < resolution_y; y++ {
 		for x := 0; x < resolution_x; x++ {
+			new_x := (float64(x)/float64(resolution_x))*quantize_length + start_position_x
 			new_y := (float64(y)/float64(resolution_y))*quantize_length + start_position_y
-			new_x := (float64(x)/float64(resolution_x))*quantize_length - start_position_x
 			iteration := mandelbrot(max_iteration, new_x, new_y)
 			pixel_color := colorize(iteration, max_iteration, colormap)
 			img.Set(x, y, color.NRGBA{
@@ -26,7 +27,7 @@ func png_generator(resolution_x, resolution_y int, start_position_x, start_posit
 		}
 	}
 
-	f, err := os.Create("image2.png")
+	f, err := os.Create("image.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,6 +40,7 @@ func png_generator(resolution_x, resolution_y int, start_position_x, start_posit
 	if err := f.Close(); err != nil {
 		log.Fatal(err)
 	}
+	defer wg.Done()
 }
 
 func mandelbrot(max_iteration, c_real, c_imaginary float64) (iteration float64) {

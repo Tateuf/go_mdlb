@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -38,7 +39,10 @@ func main() {
 				if err_start_position_x == nil {
 					if err_start_position_y == nil {
 						if err_quantize_length == nil {
-							png_generator(resolution, resolution, start_position_x, start_position_y, quantize_length, max_iteration, colormap)
+							wg := new(sync.WaitGroup)
+							wg.Add(1)
+							go png_generator(resolution, resolution, start_position_x, start_position_y, quantize_length, max_iteration, colormap, wg)
+							wg.Wait()
 							bytes, err := ioutil.ReadFile("./image.png")
 							if err != nil {
 								log.Fatal(err)
@@ -46,7 +50,6 @@ func main() {
 							var base64Encoding string
 							base64Encoding += "data:image/png;base64,"
 							base64Encoding += b64.StdEncoding.EncodeToString(bytes)
-							w.Header().Set("Content-Type", "image/png")
 							fmt.Fprintf(w, base64Encoding, html.EscapeString(r.URL.Path))
 						} else {
 							fmt.Println(err_quantize_length)
